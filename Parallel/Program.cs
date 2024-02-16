@@ -5,57 +5,90 @@ int[] sizeList = { 100000, 1000000, 10000000 };
 
 foreach(var size in sizeList)
 {
-    List<int> intList = new();
+    List<int> numbers = new();
 
     for (int i = 0; i < size; i++)
     {
-        intList.Add(new Random().Next(0, 50));
+        numbers.Add(new Random().Next(0, 50));
     }
 
     Console.WriteLine("\n");
-    Console.WriteLine($"[{size}]");
-    Console.WriteLine(GetSumm(intList));
-    Console.WriteLine(GetSumParallel(intList));
-    Console.WriteLine(GetSumParallelLINQ(intList));
+    Console.WriteLine($"[{size,10}]");
+    Console.WriteLine(GetSum(numbers));
+    Console.WriteLine(GetSumThread(numbers));
+    Console.WriteLine(GetSumLINQ(numbers));
 }
 
-static string GetSumm(List<int> list)
+static string GetSum(List<int> list)
 {
     Stopwatch sw = new();
     int sum = 0;
 
     sw.Start();
     foreach(var e in list)
+    {
         sum += e;
+    }
     sw.Stop();
 
-    return $"\t[Sequential] \tSum = {sum}. \tTime = {sw.ElapsedMilliseconds} ms.";
+    return $"[Sequential] Sum = {sum}. Time = {sw.ElapsedMilliseconds} ms.";
 }
 
-static string GetSumParallel(List<int> list)
+static string GetSumThread(List<int> list)
+{
+    Stopwatch sw = new();
+    int sum = 0;
+    object lockObj = new();
+
+    sw.Start();
+
+    List<Thread> threads = new();
+    int proccessorCount = Environment.ProcessorCount;
+    int chunkSize = (int)Math.Ceiling((double)list.Count/proccessorCount);
+
+    for (int i=0;i<proccessorCount; i++)
+    {
+        int start = i*chunkSize;
+        int end = Math.Min((i+1)*chunkSize,list.Count);
+
+        Thread thread = new(()=>
+        {
+            int localSum = 0;
+
+            for(int j = start;j<end;j++)
+            {
+                localSum += list[j];
+            } 
+            lock(lockObj)
+            {
+                sum += localSum;
+            }
+        });
+        threads.Add(thread);
+    }
+
+    foreach(var t in threads)
+    {
+        t.Start();
+    }
+
+    foreach(var t in threads)
+    {
+        t.Join();
+    }
+    sw.Stop();
+
+    return $"[{"Thread",10}] Sum = {sum}. Time = {sw.ElapsedMilliseconds} ms.";
+}
+
+static string GetSumLINQ(List<int> list)
 {
     Stopwatch sw = new();
     int sum = 0;
 
     sw.Start();
-    Parallel.For(0, list.Count, () => 0, (i, state, localSum) =>
-    {
-        localSum += list[i];
-        return localSum;
-    },
-    localSum => { Interlocked.Add(ref sum, localSum); });
+    sum = list.AsParallel().Sum();
     sw.Stop();
 
-    return $"\t[Parallel] \tSum = {sum}. \tTime = {sw.ElapsedMilliseconds} ms.";
-}
-
-static string GetSumParallelLINQ(List<int> list)
-{
-    Stopwatch sw = new();
-
-    sw.Start();
-    var sum = list.AsParallel().Sum();
-    sw.Stop();
-    
-    return $"\t[LINQ Parallel] \tSum = {sum}. \tTime = {sw.ElapsedMilliseconds} ms.";
+    return $"[{"LINQ",10}] Sum = {sum}. Time = {sw.ElapsedMilliseconds} ms.";
 }

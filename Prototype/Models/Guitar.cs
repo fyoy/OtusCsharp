@@ -1,7 +1,6 @@
-public class Guitar<T> : Instrument<T>, ICloneable
+public class Guitar : Instrument<Guitar>, ICloneable
 {
     public int NumberOfStrings { get; set; }
-
     public override void Play()
     {
         Console.WriteLine("Sound of the guitar");
@@ -9,8 +8,11 @@ public class Guitar<T> : Instrument<T>, ICloneable
 
     public object Clone()
     {
-        return new Guitar<T>()
+        var i = (Instrument<Guitar>)base.MyClone();
+
+        return new Guitar()
         {
+            Name = i.Name,
             NumberOfStrings = this.NumberOfStrings
         };
     }

@@ -3,24 +3,19 @@ TestICloneable();
 
 static void TestICloneable()
 {
-    var elec = new ElectricGuitar();
-    var acos = new AcousticGuitar();
+    ElectricGuitar electricGuitar = new();
+    AcousticGuitar acousticGuitar = new();
 
-    var elecClone = (ElectricGuitar)elec.Clone();
-    elecClone.Play();
+    var electricClone = (ElectricGuitar)electricGuitar.Clone();
+    electricClone.Play();
 
-    var acosClone = (AcousticGuitar)acos.Clone();
-    acosClone.Play();
+    var acousticClone = (AcousticGuitar)acousticGuitar.Clone();
+    acousticClone.Play();
 }
 
 static void TestIMyCloneable()
 {
-    AcousticGuitar a = new();
-
-    a.MyClone().Play();
-
-    ElectricGuitar e = new();
-
-    e.MyClone().Play();
+    new AcousticGuitar().MyClone().Play();
+    new ElectricGuitar().MyClone().Play();
 };
 

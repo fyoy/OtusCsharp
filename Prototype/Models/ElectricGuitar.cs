@@ -1,4 +1,4 @@
-public class ElectricGuitar : Guitar<ElectricGuitar>,ICloneable
+public class ElectricGuitar : Guitar, ICloneable
 {
     public string Type { get; set; }
 
@@ -8,8 +8,12 @@ public class ElectricGuitar : Guitar<ElectricGuitar>,ICloneable
     }
     public object Clone()
     {
+        var baseGuitar = (Guitar)base.Clone();
+
         return new ElectricGuitar()
         {
+            Name = baseGuitar.Name,
+            NumberOfStrings = baseGuitar.NumberOfStrings,   
             Type = this.Type
         };
     }
